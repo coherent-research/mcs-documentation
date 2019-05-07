@@ -1,2 +1,5 @@
-# dce-documentation
-Documentation for DCE
+# DCE documentation
+
+Contents:
+
+(DCE API specification)[DCEApiDescription.md]
