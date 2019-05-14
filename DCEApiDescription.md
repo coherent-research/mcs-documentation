@@ -44,14 +44,14 @@ Name            | Type   | Value | Mandatory
 ----------------|--------|-------|-----------
 requestId       | String | A unique ID for the request. The master application must ensure this id is unique | YES 
 responseUrl     | String | The URL that DCE will send the results to. The URL must implement the DCE Result API | YES
-meterType       | String | Specifies the type of meter to be tested. See XXX for allowed values.
+meterType       | String | Specifies the type of meter to be tested. To be specified. | YES
 remoteAddress   | String | Specifies the remote address used to connect to the meter. </br>The remote address is mandatory and can take the form of a phone number (for a modem connection), an IP address and port number for a GPRS or TCP connection, or a PAKNET number.</br>A phone number must be a UK national phone number, e.g. 07711000001.</br>An IP address and port number be in the form x.x.x.x:portno, e.g. 10.2.34.4:3400.</br>The PAKNET address must be a 14 digit PAKNET number, e.g. 23000000123456 | YES 
 comsSettings   | String | Normally this field should be ommitted but for cases where meters are configured in a non standard way this field can be used to override the default coms settings. This is only applicable for modem connections and can be used to specify the data bits, parity and stop bits in the form DPS, e.g. 7E1 to specify 7 stop bits, even parity and 1 stop bit. | NO 
-outstationAddress | String | Specifies the outstation address/device id of the meter. | Meter dependent
+outstationAddress | String | Specifies the outstation address/device id of the meter. | Meter dependent | NO
 serialNumber   | String | The meter serial number. If included a check will be made to determine if the meter returns this serial number and an error will be reported if there is a mismatch | NO
-password       | String | The meter password. | Meter dependent
+password       | String | The meter password. | Meter dependent | NO
 surveyDays     | Number | Specifies the number of days of survey data to read. If this field is missing or zero no survey data will be collected | NO
-surveyDate     | String | Specifies the start date for reading survey data in the form yyyy-MM-dd. If this field is empty and surveyDays is > 0 then SURVEY_DATE will be assumed to by SURVEY_DAYS before the current day. 
+surveyDate     | String | Specifies the start date for reading survey data in the form yyyy-MM-dd. If this field is empty and surveyDays is > 0 then SURVEY_DATE will be assumed to by SURVEY_DAYS before the current day. | NO
 adjustTime     | Boolean | Indicates that DCE should attempt to adjust the time of the meter. Note 1. | NO
 
 Notes:
@@ -186,16 +186,16 @@ password       | String |  Note 1 | YES
 adjustTime     | Boolean | Note 1 | YES 
 surveyDays     | Number | Note 1 | YES 
 surveyDate     | String | Note 1 | YES 
-result         | String | Indicates the overall result of the collection request. Values are "PENDING" (i.e. the collection  has not been performed yet), "SUCCESS", "PARTIAL SUCCESS" (note 3) or "ERROR: details" where details describe the problem that caused the test to fail.
-collectionStartTime  | String | Time time the collection started. In the case of multiple retries this will be the start of the first attempt. Note 2 | YES
-collectionEndTime  | String | The time the collection ended. In the case of multiple retries this will be the end of the last attempt. Note 2 | YES
-connectionStartTime | String | The time that the communication channel was opened. In the case of multiple retries this will be the start of the last attempt. Note 2
-connectionEndTime | String | The time that the communication channel was closed. In the case of multiple retries this will be the  of the last attempt. Note 2 in the same format as above.
-serialNumber   | String |  The serial number received from the meter, or "ERROR: details" if it was not possible to fetch the serial number from the meter or if the serial number from the request is included and does not match the serial number read from the meter. | YES 
-meterTime      | String | The meter date/time received from the meter with an offset in seconds from the time the test took place in the format YYYY-MM-DDTHH:mm:ss +/- Ns, e.g. 2014-10-31T23:33:32 -203s (indicates that the time was 203 seconds behind the real time when it was read). If no time was read this will contain "ERROR: details" where details describe the problem. 
+result         | String | Indicates the overall result of the collection request. Values are "PENDING" (i.e. the collection  has not been performed yet), "SUCCESS", "PARTIAL SUCCESS" (note 3) or "ERROR: details" where details describe the problem that caused the test to fail. | YES
+collectionStartTime  | String | Time time the collection started. In the case of multiple retries this will be the start of the first attempt. Note 2 | NO
+collectionEndTime  | String | The time the collection ended. In the case of multiple retries this will be the end of the last attempt. Note 2 | NO. 
+connectionStartTime | String | The time that the communication channel was opened. In the case of multiple retries this will be the start of the last attempt. Note 2 | NO
+connectionEndTime | String | The time that the communication channel was closed. In the case of multiple retries this will be the  of the last attempt. Note 2 in the same format as above. | NO
+serialNumber   | String |  The serial number received from the meter, or "ERROR: details" if it was not possible to fetch the serial number from the meter or if the serial number from the request is included and does not match the serial number read from the meter. | NO 
+meterTime      | String | The meter date/time received from the meter with an offset in seconds from the time the test took place in the format YYYY-MM-DDTHH:mm:ss +/- Ns, e.g. 2014-10-31T23:33:32 -203s (indicates that the time was 203 seconds behind the real time when it was read). If no time was read this will contain "ERROR: details" where details describe the problem. | NO
 timeAdjustmentResult | String | "NOT REQUIRED", "SUCCESS", "ERROR: details". The timeAdjustmentResult can be an ERROR if it was not possible to adjust the time or the variation was above the maximum threshold. | NO
-registerValues | Array | An array of Register Value objects. See below
-surveyData | Array | An array of Register Survey Data objects. See below
+registerValues | Array | An array of Register Value objects. See below | NO
+surveyData | Array | An array of Register Survey Data objects. See below | NO
 
 Notes: 
 1. The parameters from the original Data Collection Request (or their interpretation in the case where their values were implicit) are repeated here. 
@@ -218,14 +218,14 @@ A Register Survey Value Object contains survey data for an individual register/c
 Name            | Type   | Value | Mandatory 
 ----------------|--------|-------|-----------
 name            | String | The register name (depending on the meter type) | YES
-units           | String | The units of the register
-readings        | JSON object | An array of readings
+units           | String | The units of the register | YES
+readings        | JSON object | An array of readings | YES
 
 ### Survey Reading Object
 Name            | Type   | Value | Mandatory 
 ----------------|--------|-------|-----------
-timestamp       | String | The time of the reading
-value           | Number | The value of the register
+timestamp       | String | The time of the reading | YES
+value           | Number | The value of the register | YES
 
 ### Sample - successfully completed collection
 HTTP request from master application to DCE:
