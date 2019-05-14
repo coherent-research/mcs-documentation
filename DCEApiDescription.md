@@ -2,31 +2,36 @@
 DCE (Data Collection Engine) has been designed as a standalone service
 for providing meter data collection services to other applications (referred to as the master application hereafter).
 
-The master application will data collection requests to DCE via the "DCE Request API" and DCE will asynchronously send results to
+The master application will send data collection requests to DCE via the "DCE Request API" and DCE will asynchronously send results to
 the master application via the "DCE Result API".
 
 # Basics
 Each API is implemented as [Web API](https://en.wikipedia.org/wiki/Web_API) and will use JSON as the data representation format.
 
-## Authentication
+## Security and Authentication
 To be decided.
 
-# DCE Request API
-## General
-The master application can request for meter to be collected by DCE by sending a Data Collection Request and DCE will send a response acknowledging the request or an error code if appropriate.
+It is suggested HTTPS is used in both directions. Authentication (i.e. securing the API with password/tokens) may be omitted and instead client IP addresses could simply be white-listed on the receiving server in each direction. 
 
 ## Response codes
-Standard HTTP response codes are used in the response to all the request.
+Standard HTTP response codes are used in the response to all the requests in the APIs.
 The following codes are used
 
 Response code | Meaning
 --------------|--------
-200 OK        | Indicates that the query was successful and the response body will contain a Json object (or array of objects) with the requested data. 
-400 Bad Request | Indicates the request is not valid or understood by DCE. The body of the response will provide more details of why the request is considered bad.
-401 Unauthorized | Indicates that the user has not provided a valid authentication token. See above
+200 OK        | Indicates that the request was successful and the response body will contain a Json object (or array of objects) with the requested data. 
+400 Bad Request | Indicates the request is not valid or understood by the server. The body of the response will provide more details of why the request is considered bad.
+429 Too Many Requests | Can be sent by the server to throttle inputs. Exact usage to be decided. 
 500 Internal Server Error | Indicates a fault on the server. The body of the response will provide more details about the error.
 
-## Data Collection Request
+## Error handling
+To be decided.
+
+# DCE Request API
+## General
+The master application can request for date from a meter to be collected by DCE by sending a Data Collection Request and DCE will send a response acknowledging the request or an error code if appropriate.
+
+## Data Collection Request method
 
 The Data Collection Request method will use a HTTP POST message and the parameters will be sent in the body of the message as a JSON object:
 ```
@@ -38,6 +43,7 @@ POST collection-request
 Name            | Type   | Value | Mandatory 
 ----------------|--------|-------|-----------
 requestId       | String | A unique ID for the request. The master application must ensure this id is unique | YES 
+responseUrl     | String | The URL that DCE will send the results to. The URL must implement the DCE Result API | YES
 meterType       | String | Specifies the type of meter to be tested. See XXX for allowed values.
 remoteAddress   | String | Specifies the remote address used to connect to the meter. </br>The remote address is mandatory and can take the form of a phone number (for a modem connection), an IP address and port number for a GPRS or TCP connection, or a PAKNET number.</br>A phone number must be a UK national phone number, e.g. 07711000001.</br>An IP address and port number be in the form x.x.x.x:portno, e.g. 10.2.34.4:3400.</br>The PAKNET address must be a 14 digit PAKNET number, e.g. 23000000123456 | YES 
 comsSettings   | String | Normally this field should be ommitted but for cases where meters are configured in a non standard way this field can be used to override the default coms settings. This is only applicable for modem connections and can be used to specify the data bits, parity and stop bits in the form DPS, e.g. 7E1 to specify 7 stop bits, even parity and 1 stop bit. | NO 
@@ -58,13 +64,14 @@ requestId       | String | Unique ID contained in the request. | YES
 details         | String | Details relating to any errors. This parameter is only included if the response code does not equal 200. | NO
 
 ### Sample - successful case
-From master application to DCE:
+HTTP request from master application to DCE:
 ```
 POST https://www.coherent-research.co.uk/DCE/collection-request
 content-type: application/json
 
 {
   "requestId": "0001",
+  "responseUrl": "https://www.company.com/dceresults",
   "meterType": "ELSTER_A1700",
   "remoteAddress": "07777000000",
   "outstationAddress": "1",
@@ -75,7 +82,7 @@ content-type: application/json
   "adjustTime": true
 }
 ```
-From DCE to master application:
+Reponse from DCE:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
@@ -85,14 +92,14 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 ### Sample - error case
-From master application to DCE:
+HTTP request from master application to DCE:
 ```
 POST https://www.coherent-research.co.uk/DCE/collection-request
 content-type: application/json
 
 {
   "requestId": "0001",
-  "requestId": "0001",
+  "responseUrl": "https://www.company.com/dceresults",
   "meterType": "ELSTER_A1700",
   "remoteAddress": "abc",
   "outstationAddress": "1",
@@ -104,7 +111,7 @@ content-type: application/json
 
 }
 ```
-From DCE to master application:
+HTTP response from DCE:
 ```
 HTTP/1.1 400 Bad Request
 Content-Type: application/json; charset=utf-8
@@ -115,7 +122,9 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-## Data Collection Cancel
+## Data Collection Cancel method
+The master application can request the cancellation of any previously requested collection. DCE will remove the matching request from the queue. If the request has already been processed (or is being processed) DCE will respond positively.
+
 The Data Collection Cancel method will use a HTTP POST message and the parameters will be sent in the body of the message as a JSON object:
 ```
 POST collection-cancel
@@ -133,7 +142,7 @@ requestId       | String | Unique ID contained in the request. | YES
 details         | String | Details relating to any errors. This parameter is only included if the response code does not equal 200. | NO
 
 ### Sample - successful case
-From master application to DCE:
+HTTP request from master application to DCE:
 ```
 POST https://www.coherent-research.co.uk/DCE/collection-cancel
 content-type: application/json
@@ -142,7 +151,7 @@ content-type: application/json
   "requestId": "0001"
 }
 ```
-From DCE to master application:
+HTTP response from DCE:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
@@ -152,7 +161,9 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-## Data Collection Status
+## Data Collection Status method
+The master application can request the status of any previously requested collection. This method is not required to be used by the master application as results will be sent using the DCE Result API but it can be used by system that prefer to poll for the results instead.
+
 The Data Collection Status method will use a HTTP GET message and the parameters will be sent as part of the URL and the response will contain the information in JSON format in the response body.
 ```
 GET collection-status/requestId
@@ -217,11 +228,11 @@ timestamp       | String | The time of the reading
 value           | Number | The value of the register
 
 ### Sample - successfully completed collection
-From master application to DCE:
+HTTP request from master application to DCE:
 ```
 GET https://www.coherent-research.co.uk/DCE/collection-status/0001
 ```
-From DCE to master application:
+HTTP response from DCE:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
@@ -328,6 +339,104 @@ Content-Type: application/json; charset=utf-8
   "timeAdjustmentResult": "SUCCESS"
 }
 ```
+# DCE Result API
+## General
+DCE will send the results of any data collection request to the provided URL using the DCE Result API. 
 
+## Data Collect Result method
 
+The Data Collection Result method will use a HTTP POST message and the parameters will be sent in the body of the message as a JSON object. The object format is exactlty as in the response to the DCE Collection Status request above.
+```
+POST collection-result
+```
+### URL Request Parameters
+See DCE Collection Status request above.
 
+### JSON Response parameters
+Name            | Type   | Value | Mandatory 
+----------------|--------|-------|-----------
+requestId       | String | Unique ID contained in the request. | YES 
+details         | String | Details relating to any errors. This parameter is only included if the response code does not equal 200. | NO
+
+### Sample - successfully completed collection
+HTTP request from DCE to master application:
+```
+POST https://www.coherent-research.co.uk/DCE/collection-result
+Content-Type: application/json; charset=utf-8
+
+{
+  "requestId": "0001",
+  "meterType": "ELSTER_A1700",
+  "remoteAddress": "07777000000",
+  "outstationAddress": "1",
+  "serialNumber": "12345678",
+  "password": "AAAA0000",
+  "surveyDays": 1,
+  "surveyDate": "2019-01-01",
+  "resultSummary": "SUCCESS",
+  "collectionStartTime": "2019-01-02T04:00:00",
+  "collectionEndTime": "2019-01-02T04:01:30",
+  "connectionStartTime": "2019-01-02T04:02:00",
+  "connectionEndTime": "2019-01-02T04:01:28",
+  "serialNumber": "12345678",
+  "meterTime": "2019-01-02T03T04:02:15 +10s",
+  "registerValues": [
+    {
+      "name": "kWh Import",
+      "timestamp": "2019-01-02T04:02:10",
+      "value": "758",
+      "units": "kWh"
+    },
+    {
+      "name": "kvarh Q1",
+      "timestamp": "2019-01-02T04:02:11",
+      "value": "1190",
+      "units": "kvarh"
+    }
+  ],
+  "surveyData": [
+      {
+        "name": "kWh Import",
+        "units": "kWh",
+        [
+          {
+            "timestamp": "2019-01-01T00:00:00",
+            "value": "640"
+          },
+          {
+            "timestamp": "2019-01-01T00:30:00",
+            "value": "645"
+          },
+          ...
+          {
+            "timestamp": "2019-01-01T23:30:00",
+            "value": "700"
+          }       
+        ]
+      },
+      {
+        "name": "kvarh Q1",
+        "units": "kvarh",
+        [
+          {
+            "timestamp": "2019-01-01T00:00:00",
+            "value": "900"
+          },
+          {
+            "timestamp": "2019-01-01T00:30:00",
+            "value": "910"
+          },
+          ...
+          {
+            "timestamp": "2019-01-01T23:30:00",
+            "value": "1000"
+          }       
+        ]
+      },
+  ]
+}
+```
+HTTP response from master application:
+```
+HTTP/1.1 200 OK
+```
