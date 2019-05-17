@@ -53,10 +53,11 @@ serialNumber   | String | The meter serial number. If included a check will be m
 password       | String | The meter password. | Meter dependent | NO
 surveyDays     | Number | Specifies the number of days of survey data to read. If this field is missing or zero no survey data will be collected | NO
 surveyDate     | String | Specifies the start date for reading survey data in the form yyyy-MM-dd. If this field is empty and surveyDays is > 0 then SURVEY_DATE will be assumed to by SURVEY_DAYS before the current day. | NO
-adjustTime     | Boolean | Indicates that MCS should attempt to adjust the time of the meter. Note 1. | NO
+adjustTime     | Boolean | Indicates that MCS should attempt to adjust the time of the meter. Note 1. Note 2. | NO
 
 Notes:
 1. The time for meters will only be adjusted if it varies from the MCS server time by more than a configured minimum threshold and less than or equal to a configured maximum threshold. If the time varies by less than the minimum threshold the adjustment is considered "NOT REQUIRED". If the time varies by more than the maximum threshold it is considered an error. 
+2. Possibly adjusting the time should be move to a seperate method for extensibility
 
 ### JSON Response parameters
 Name            | Type   | Value | Mandatory 
