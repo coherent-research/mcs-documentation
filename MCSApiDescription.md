@@ -1,9 +1,9 @@
 # Introduction
-DCE (Data Collection Engine) has been designed as a standalone service
-for providing meter data collection services to other applications (referred to as the master application hereafter).
+MCS (Meter Communications Service) has been designed as a standalone service
+for providing meter data communications services to other applications (referred to as the master application hereafter).
 
-The master application will send data collection requests to DCE via the "DCE Request API" and DCE will asynchronously send results to
-the master application via the "DCE Result API".
+The master application will send data collection requests to MCS via the "MCS Request API" and MCS will asynchronously send results to
+the master application via the "MCS Result API".
 
 # Basics
 Each API is implemented as [Web API](https://en.wikipedia.org/wiki/Web_API) and will use JSON as the data representation format.
@@ -27,9 +27,9 @@ Response code | Meaning
 ## Error handling
 To be decided.
 
-# DCE Request API
+# MCS Request API
 ## General
-The master application can request for date from a meter to be collected by DCE by sending a Data Collection Request and DCE will send a response acknowledging the request or an error code if appropriate.
+The master application can request for data from a meter to be collected by MCS by sending a Data Collection Request and MCS will send a response acknowledging the request or an error code if appropriate.
 
 ## Data Collection Request method
 
@@ -43,7 +43,8 @@ POST collection-request
 Name            | Type   | Value | Mandatory 
 ----------------|--------|-------|-----------
 requestId       | String | A unique ID for the request. The master application must ensure this id is unique | YES 
-responseUrl     | String | The URL that DCE will send the results to. The URL must implement the DCE Result API | YES
+responseUrl     | String | The URL that MCS will send the results to. The URL must implement the MCS Result API | YES
+priority        | Int    | An integer value assigning related priority to the request. The lower the number the higher the priority where 0 implies immediately | YES
 meterType       | String | Specifies the type of meter to be tested. To be specified. | YES
 remoteAddress   | String | Specifies the remote address used to connect to the meter. </br>The remote address is mandatory and can take the form of a phone number (for a modem connection), an IP address and port number for a GPRS or TCP connection, or a PAKNET number.</br>A phone number must be a UK national phone number, e.g. 07711000001.</br>An IP address and port number be in the form x.x.x.x:portno, e.g. 10.2.34.4:3400.</br>The PAKNET address must be a 14 digit PAKNET number, e.g. 23000000123456 | YES 
 comsSettings   | String | Normally this field should be ommitted but for cases where meters are configured in a non standard way this field can be used to override the default coms settings. This is only applicable for modem connections and can be used to specify the data bits, parity and stop bits in the form DPS, e.g. 7E1 to specify 7 stop bits, even parity and 1 stop bit. | NO 
@@ -52,10 +53,10 @@ serialNumber   | String | The meter serial number. If included a check will be m
 password       | String | The meter password. | Meter dependent | NO
 surveyDays     | Number | Specifies the number of days of survey data to read. If this field is missing or zero no survey data will be collected | NO
 surveyDate     | String | Specifies the start date for reading survey data in the form yyyy-MM-dd. If this field is empty and surveyDays is > 0 then SURVEY_DATE will be assumed to by SURVEY_DAYS before the current day. | NO
-adjustTime     | Boolean | Indicates that DCE should attempt to adjust the time of the meter. Note 1. | NO
+adjustTime     | Boolean | Indicates that MCS should attempt to adjust the time of the meter. Note 1. | NO
 
 Notes:
-1. The time for meters will only be adjusted if it varies from the DCE server time by more than a configured minimum threshold and less than or equal to a configured maximum threshold. If the time varies by less than the minimum threshold the adjustment is considered "NOT REQUIRED". If the time varies by more than the maximum threshold it is considered an error. 
+1. The time for meters will only be adjusted if it varies from the MCS server time by more than a configured minimum threshold and less than or equal to a configured maximum threshold. If the time varies by less than the minimum threshold the adjustment is considered "NOT REQUIRED". If the time varies by more than the maximum threshold it is considered an error. 
 
 ### JSON Response parameters
 Name            | Type   | Value | Mandatory 
@@ -64,14 +65,15 @@ requestId       | String | Unique ID contained in the request. | YES
 details         | String | Details relating to any errors. This parameter is only included if the response code does not equal 200. | NO
 
 ### Sample - successful case
-HTTP request from master application to DCE:
+HTTP request from master application to MCS:
 ```
-POST https://www.coherent-research.co.uk/DCE/collection-request
+POST https://www.coherent-research.co.uk/MCS/collection-request
 content-type: application/json
 
 {
   "requestId": "0001",
-  "responseUrl": "https://www.company.com/dceresults",
+  "responseUrl": "https://www.company.com/MCSresults",
+  "priority": 0,
   "meterType": "ELSTER_A1700",
   "remoteAddress": "07777000000",
   "outstationAddress": "1",
@@ -82,7 +84,7 @@ content-type: application/json
   "adjustTime": true
 }
 ```
-Reponse from DCE:
+Reponse from MCS:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
@@ -92,14 +94,14 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 ### Sample - error case
-HTTP request from master application to DCE:
+HTTP request from master application to MCS:
 ```
-POST https://www.coherent-research.co.uk/DCE/collection-request
+POST https://www.coherent-research.co.uk/MCS/collection-request
 content-type: application/json
 
 {
   "requestId": "0001",
-  "responseUrl": "https://www.company.com/dceresults",
+  "responseUrl": "https://www.company.com/MCSresults",
   "meterType": "ELSTER_A1700",
   "remoteAddress": "abc",
   "outstationAddress": "1",
@@ -111,7 +113,7 @@ content-type: application/json
 
 }
 ```
-HTTP response from DCE:
+HTTP response from MCS:
 ```
 HTTP/1.1 400 Bad Request
 Content-Type: application/json; charset=utf-8
@@ -123,7 +125,7 @@ Content-Type: application/json; charset=utf-8
 ```
 
 ## Data Collection Cancel method
-The master application can request the cancellation of any previously requested collection. DCE will remove the matching request from the queue. If the request has already been processed (or is being processed) DCE will respond positively.
+The master application can request the cancellation of any previously requested collection. MCS will remove the matching request from the queue. If the request has already been processed (or is being processed) MCS will respond positively.
 
 The Data Collection Cancel method will use a HTTP POST message and the parameters will be sent in the body of the message as a JSON object:
 ```
@@ -142,16 +144,16 @@ requestId       | String | Unique ID contained in the request. | YES
 details         | String | Details relating to any errors. This parameter is only included if the response code does not equal 200. | NO
 
 ### Sample - successful case
-HTTP request from master application to DCE:
+HTTP request from master application to MCS:
 ```
-POST https://www.coherent-research.co.uk/DCE/collection-cancel
+POST https://www.coherent-research.co.uk/MCS/collection-cancel
 content-type: application/json
 
 {
   "requestId": "0001"
 }
 ```
-HTTP response from DCE:
+HTTP response from MCS:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
@@ -162,7 +164,7 @@ Content-Type: application/json; charset=utf-8
 ```
 
 ## Data Collection Status method
-The master application can request the status of any previously requested collection. This method is not required to be used by the master application as results will be sent using the DCE Result API but it can be used by system that prefer to poll for the results instead.
+The master application can request the status of any previously requested collection. This method is not required to be used by the master application as results will be sent using the MCS Result API but it can be used by system that prefer to poll for the results instead.
 
 The Data Collection Status method will use a HTTP GET message and the parameters will be sent as part of the URL and the response will contain the information in JSON format in the response body.
 ```
@@ -228,11 +230,11 @@ timestamp       | String | The time of the reading | YES
 value           | Number | The value of the register | YES
 
 ### Sample - successfully completed collection
-HTTP request from master application to DCE:
+HTTP request from master application to MCS:
 ```
-GET https://www.coherent-research.co.uk/DCE/collection-status/0001
+GET https://www.coherent-research.co.uk/MCS/collection-status/0001
 ```
-HTTP response from DCE:
+HTTP response from MCS:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
@@ -311,11 +313,11 @@ Content-Type: application/json; charset=utf-8
 ```
 
 ### Sample - successfully completed time adjustment (no survey data)
-From master application to DCE:
+From master application to MCS:
 ```
-GET https://www.coherent-research.co.uk/DCE/collection-status/0001
+GET https://www.coherent-research.co.uk/MCS/collection-status/0001
 ```
-From DCE to master application:
+From MCS to master application:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
@@ -339,18 +341,18 @@ Content-Type: application/json; charset=utf-8
   "timeAdjustmentResult": "SUCCESS"
 }
 ```
-# DCE Result API
+# MCS Result API
 ## General
-DCE will send the results of any data collection request to the provided URL using the DCE Result API. 
+MCS will send the results of any data collection request to the provided URL using the MCS Result API. 
 
 ## Data Collect Result method
 
-The Data Collection Result method will use a HTTP POST message and the parameters will be sent in the body of the message as a JSON object. The object format is exactlty as in the response to the DCE Collection Status request above.
+The Data Collection Result method will use a HTTP POST message and the parameters will be sent in the body of the message as a JSON object. The object format is exactlty as in the response to the MCS Collection Status request above.
 ```
 POST collection-result
 ```
 ### URL Request Parameters
-See DCE Collection Status request above.
+See MCS Collection Status request above.
 
 ### JSON Response parameters
 Name            | Type   | Value | Mandatory 
@@ -359,9 +361,9 @@ requestId       | String | Unique ID contained in the request. | YES
 details         | String | Details relating to any errors. This parameter is only included if the response code does not equal 200. | NO
 
 ### Sample - successfully completed collection
-HTTP request from DCE to master application:
+HTTP request from MCS to master application:
 ```
-POST https://www.coherent-research.co.uk/DCE/collection-result
+POST https://www.coherent-research.co.uk/MCS/collection-result
 Content-Type: application/json; charset=utf-8
 
 {
