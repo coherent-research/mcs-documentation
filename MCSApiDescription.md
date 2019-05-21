@@ -42,9 +42,10 @@ POST collection-request
 
 Name            | Type   | Value | Mandatory 
 ----------------|--------|-------|-----------
-requestId       | String | A unique ID for the request. The master application must ensure this id is unique | YES 
+requestId       | String | A unique ID for the request. The master application must ensure this id is unique (GUID?) | YES 
 responseUrl     | String | The URL that MCS will send the results to. The URL must implement the MCS Result API | YES
-priority        | Int    | An integer value assigning related priority to the request. The lower the number the higher the priority where 0 implies immediately | YES
+priority        | Int    | An integer value (>= 1) assigning a relative priority to the request. The lower the number the higher the priority. (0 is reserved for interactive requests and will not be accepted here). | YES
+delayUntil      | String | Can be used to indicate that the request shouldn't be processed until a time in the future. This can be used to indicate requests should be processed overnight. | NO
 meterType       | String | Specifies the type of meter to be tested. To be specified. | YES
 remoteAddress   | String | Specifies the remote address used to connect to the meter. </br>The remote address is mandatory and can take the form of a phone number (for a modem connection), an IP address and port number for a GPRS or TCP connection, or a PAKNET number.</br>A phone number must be a UK national phone number, e.g. 07711000001.</br>An IP address and port number be in the form x.x.x.x:portno, e.g. 10.2.34.4:3400.</br>The PAKNET address must be a 14 digit PAKNET number, e.g. 23000000123456 | YES 
 comsSettings   | String | Normally this field should be ommitted but for cases where meters are configured in a non standard way this field can be used to override the default coms settings. This is only applicable for modem connections and can be used to specify the data bits, parity and stop bits in the form DPS, e.g. 7E1 to specify 7 stop bits, even parity and 1 stop bit. | NO 
