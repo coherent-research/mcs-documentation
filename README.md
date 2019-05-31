@@ -1,4 +1,4 @@
-# DCE documentation
+# MCS documentation
 
 Contents:
 
