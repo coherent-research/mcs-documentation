@@ -131,7 +131,7 @@ The master application can request the cancellation of any previously requested 
 
 The Data Collection Cancel method will use a HTTP POST message and the parameters will be sent in the body of the message as a JSON object:
 ```
-POST collection-cancel
+DELETE collection-cancel
 ```
 ### JSON Request Parameters
 
@@ -148,7 +148,7 @@ details         | String | Details relating to any errors. This parameter is onl
 ### Sample - successful case
 HTTP request from master application to MCS:
 ```
-POST https://www.coherent-research.co.uk/MCS/collection-cancel
+DELETE https://www.coherent-research.co.uk/MCS/collection-cancel
 content-type: application/json
 
 {
