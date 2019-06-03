@@ -40,9 +40,9 @@ POST collection-request
 
 ### JSON Request Parameters
 
-Name            | Type   | Value | Mandatory 
-----------------|--------|-------|-----------
-requestId       | String | A unique ID for the request. The master application must ensure this id is unique (GUID?) | YES 
+Name             | Type   | Value | Mandatory 
+-----------------|--------|-------|-----------
+requestReference | String | A unique ID for the request. The master application must ensure this id is unique (GUID?) | YES 
 responseUrl     | String | The URL that MCS will send the results to. The URL must implement the MCS Result API | YES
 priority        | Int    | An integer value (>= 1) assigning a relative priority to the request. The lower the number the higher the priority. (0 is reserved for interactive requests and will not be accepted here). | YES
 delayUntil      | String | Can be used to indicate that the request shouldn't be processed until a time in the future. This can be used to indicate requests should be processed overnight. | NO
@@ -61,9 +61,9 @@ Notes:
 2. Possibly adjusting the time should be move to a seperate method for extensibility
 
 ### JSON Response parameters
-Name            | Type   | Value | Mandatory 
-----------------|--------|-------|-----------
-requestId       | String | Unique ID contained in the request. | YES 
+Name             | Type   | Value | Mandatory 
+-----------------|--------|-------|-----------
+requestReference | String | Unique ID contained in the request. | YES 
 details         | String | Details relating to any errors. This parameter is only included if the response code does not equal 200. | NO
 
 ### Sample - successful case
@@ -73,7 +73,7 @@ POST https://www.coherent-research.co.uk/MCS/collection-request
 content-type: application/json
 
 {
-  "requestId": "0001",
+  "requestReference": "0001",
   "responseUrl": "https://www.company.com/MCSresults",
   "priority": 0,
   "meterType": "ELSTER_A1700",
@@ -92,7 +92,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "requestId": "0001"
+  "requestReference": "0001"
 }
 ```
 ### Sample - error case
@@ -102,7 +102,7 @@ POST https://www.coherent-research.co.uk/MCS/collection-request
 content-type: application/json
 
 {
-  "requestId": "0001",
+  "requestReference": "0001",
   "responseUrl": "https://www.company.com/MCSresults",
   "meterType": "ELSTER_A1700",
   "remoteAddress": "abc",
@@ -121,7 +121,7 @@ HTTP/1.1 400 Bad Request
 Content-Type: application/json; charset=utf-8
 
 {
-  "requestId": "0001".
+  "requestReference": "0001".
   "details": "Remote address is not in a recognised format"
 }
 ```
@@ -135,15 +135,15 @@ POST collection-cancel
 ```
 ### JSON Request Parameters
 
-Name            | Type   | Value | Mandatory 
-----------------|--------|-------|-----------
-requestId       | String | A unique ID for the request. The master application must ensure this id is unique | YES 
+Name             | Type   | Value | Mandatory 
+-----------------|--------|-------|-----------
+requestReference | String | A unique ID for the request. The master application must ensure this id is unique | YES 
 
 ### JSON Response parameters
-Name            | Type   | Value | Mandatory 
-----------------|--------|-------|-----------
-requestId       | String | Unique ID contained in the request. | YES 
-details         | String | Details relating to any errors. This parameter is only included if the response code does not equal 200. | NO
+Name             | Type   | Value | Mandatory 
+-----------------|--------|-------|-----------
+requestReference | String | Unique ID contained in the request. | YES 
+details          | String | Details relating to any errors. This parameter is only included if the response code does not equal 200. | NO
 
 ### Sample - successful case
 HTTP request from master application to MCS:
@@ -152,7 +152,7 @@ POST https://www.coherent-research.co.uk/MCS/collection-cancel
 content-type: application/json
 
 {
-  "requestId": "0001"
+  "requestReference": "0001"
 }
 ```
 HTTP response from MCS:
@@ -161,7 +161,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "requestId": "0001"
+  "requestReference": "0001"
 }
 ```
 
@@ -170,18 +170,18 @@ The master application can request the status of any previously requested collec
 
 The Data Collection Status method will use a HTTP GET message and the parameters will be sent as part of the URL and the response will contain the information in JSON format in the response body.
 ```
-GET collection-status/requestId
+GET collection-status/requestReference
 ```
 ### URL Request Parameters
 
 Name            | Type   | Value | Mandatory 
 ----------------|--------|-------|-----------
-requestId       | String | Unique ID contained in the request. | YES 
+requestReference       | String | Unique ID contained in the request. | YES 
 
 ### JSON Response parameters - successful case
-Name            | Type   | Value | Mandatory 
-----------------|--------|-------|-----------
-requestId       | String | Note 1 | YES 
+Name             | Type   | Value | Mandatory 
+-----------------|--------|-------|-----------
+requestReference | String | Note 1 | YES 
 meterType       | String | Note 1 | YES 
 remoteAddress   | String | Note 1 | YES 
 comsSettings   | String | Note 1 | YES 
@@ -203,7 +203,7 @@ surveyData | Array | An array of Register Survey Data objects. See below | NO
 
 Notes: 
 1. The parameters from the original Data Collection Request (or their interpretation in the case where their values were implicit) are repeated here. 
-2. All times are in UTC and in the format YYYY-MM-DDTHH:mm:ss 
+2. All times are in UTC and in the format YYYY-MM-DDTHH:mm:ssZ
 3. A collection will be considered partially successful if some, but not all, of the data was collected.
 
 ### Register Value Object
@@ -212,7 +212,6 @@ A Register Value Object contains an instantaneous value read from the meter.
 Name            | Type   | Value | Mandatory 
 ----------------|--------|-------|-----------
 name            | String | The register name (depending on the meter type) | YES
-timestamp       | String | The time of the reading
 value           | Number | The value of the register
 units           | String | The units of the register
 
@@ -242,7 +241,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "requestId": "0001",
+  "requestReference": "0001",
   "meterType": "ELSTER_A1700",
   "remoteAddress": "07777000000",
   "outstationAddress": "1",
@@ -260,13 +259,13 @@ Content-Type: application/json; charset=utf-8
   "registerValues": [
     {
       "name": "kWh Import",
-      "timestamp": "2019-01-02T04:02:10",
+      "timestamp": "2019-01-02T04:02:10Z",
       "value": "758",
       "units": "kWh"
     },
     {
       "name": "kvarh Q1",
-      "timestamp": "2019-01-02T04:02:11",
+      "timestamp": "2019-01-02T04:02:11Z",
       "value": "1190",
       "units": "kvarh"
     }
@@ -277,16 +276,16 @@ Content-Type: application/json; charset=utf-8
         "units": "kWh",
         [
           {
-            "timestamp": "2019-01-01T00:00:00",
+            "timestamp": "2019-01-01T00:00:00Z",
             "value": "640"
           },
           {
-            "timestamp": "2019-01-01T00:30:00",
+            "timestamp": "2019-01-01T00:30:00Z",
             "value": "645"
           },
           ...
           {
-            "timestamp": "2019-01-01T23:30:00",
+            "timestamp": "2019-01-01T23:30:00Z",
             "value": "700"
           }       
         ]
@@ -296,16 +295,16 @@ Content-Type: application/json; charset=utf-8
         "units": "kvarh",
         [
           {
-            "timestamp": "2019-01-01T00:00:00",
+            "timestamp": "2019-01-01T00:00:00Z",
             "value": "900"
           },
           {
-            "timestamp": "2019-01-01T00:30:00",
+            "timestamp": "2019-01-01T00:30:00Z",
             "value": "910"
           },
           ...
           {
-            "timestamp": "2019-01-01T23:30:00",
+            "timestamp": "2019-01-01T23:30:00Z",
             "value": "1000"
           }       
         ]
@@ -325,7 +324,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "requestId": "0001",
+  "requestReference": "0001",
   "meterType": "ELSTER_A1700",
   "remoteAddress": "07777000000",
   "outstationAddress": "1",
@@ -359,7 +358,7 @@ See MCS Collection Status request above.
 ### JSON Response parameters
 Name            | Type   | Value | Mandatory 
 ----------------|--------|-------|-----------
-requestId       | String | Unique ID contained in the request. | YES 
+requestReference       | String | Unique ID contained in the request. | YES 
 details         | String | Details relating to any errors. This parameter is only included if the response code does not equal 200. | NO
 
 ### Sample - successfully completed collection
@@ -369,7 +368,7 @@ POST https://www.coherent-research.co.uk/MCS/collection-result
 Content-Type: application/json; charset=utf-8
 
 {
-  "requestId": "0001",
+  "requestReference": "0001",
   "meterType": "ELSTER_A1700",
   "remoteAddress": "07777000000",
   "outstationAddress": "1",
@@ -387,13 +386,13 @@ Content-Type: application/json; charset=utf-8
   "registerValues": [
     {
       "name": "kWh Import",
-      "timestamp": "2019-01-02T04:02:10",
+      "timestamp": "2019-01-02T04:02:10Z",
       "value": "758",
       "units": "kWh"
     },
     {
       "name": "kvarh Q1",
-      "timestamp": "2019-01-02T04:02:11",
+      "timestamp": "2019-01-02T04:02:11Z",
       "value": "1190",
       "units": "kvarh"
     }
@@ -404,16 +403,16 @@ Content-Type: application/json; charset=utf-8
         "units": "kWh",
         [
           {
-            "timestamp": "2019-01-01T00:00:00",
+            "timestamp": "2019-01-01T00:00:00Z",
             "value": "640"
           },
           {
-            "timestamp": "2019-01-01T00:30:00",
+            "timestamp": "2019-01-01T00:30:00Z",
             "value": "645"
           },
           ...
           {
-            "timestamp": "2019-01-01T23:30:00",
+            "timestamp": "2019-01-01T23:30:00Z",
             "value": "700"
           }       
         ]
@@ -423,16 +422,16 @@ Content-Type: application/json; charset=utf-8
         "units": "kvarh",
         [
           {
-            "timestamp": "2019-01-01T00:00:00",
+            "timestamp": "2019-01-01T00:00:00Z",
             "value": "900"
           },
           {
-            "timestamp": "2019-01-01T00:30:00",
+            "timestamp": "2019-01-01T00:30:00Z",
             "value": "910"
           },
           ...
           {
-            "timestamp": "2019-01-01T23:30:00",
+            "timestamp": "2019-01-01T23:30:00Z",
             "value": "1000"
           }       
         ]
