@@ -21,6 +21,7 @@ Response code | Meaning
 --------------|--------
 200 OK        | Indicates that the request was successful and the response body will contain a Json object (or array of objects) with the requested data. 
 400 Bad Request | Indicates the request is not valid or understood by the server. The body of the response will provide more details of why the request is considered bad.
+404 Not found         | Indicates that a referenced object is not found 
 429 Too Many Requests | Can be sent by the server to throttle inputs. Exact usage to be decided. 
 500 Internal Server Error | Indicates a fault on the server. The body of the response will provide more details about the error.
 
@@ -46,7 +47,7 @@ requestReference | String | A unique ID for the request. The master application 
 responseUrl     | String | The URL that MCS will send the results to. The URL must implement the MCS Result API | YES
 priority        | Int    | An integer value (>= 1) assigning a relative priority to the request. The lower the number the higher the priority. (0 is reserved for interactive requests and will not be accepted here). | YES
 delayUntil      | String | Can be used to indicate that the request shouldn't be processed until a time in the future. This can be used to indicate requests should be processed overnight. | NO
-meterType       | String | Specifies the type of meter to be tested. To be specified. | YES
+meterType       | String | Specifies the type of meter to be tested. Currently:   | YES
 remoteAddress   | String | Specifies the remote address used to connect to the meter. </br>The remote address is mandatory and can take the form of a phone number (for a modem connection), an IP address and port number for a GPRS or TCP connection, or a PAKNET number.</br>A phone number must be a UK national phone number, e.g. 07711000001.</br>An IP address and port number be in the form x.x.x.x:portno, e.g. 10.2.34.4:3400.</br>The PAKNET address must be a 14 digit PAKNET number, e.g. 23000000123456 | YES 
 comsSettings   | String | Normally this field should be ommitted but for cases where meters are configured in a non standard way this field can be used to override the default coms settings. This is only applicable for modem connections and can be used to specify the data bits, parity and stop bits in the form DPS, e.g. 7E1 to specify 7 stop bits, even parity and 1 stop bit. | NO 
 outstationAddress | String | Specifies the outstation address/device id of the meter. | Meter dependent | NO
@@ -75,7 +76,7 @@ content-type: application/json
 {
   "requestReference": "0001",
   "responseUrl": "https://www.company.com/MCSresults",
-  "priority": 0,
+  "priority": 1,
   "meterType": "ELSTER_A1700",
   "remoteAddress": "07777000000",
   "outstationAddress": "1",
@@ -104,6 +105,7 @@ content-type: application/json
 {
   "requestReference": "0001",
   "responseUrl": "https://www.company.com/MCSresults",
+  "priority": 1,
   "meterType": "ELSTER_A1700",
   "remoteAddress": "abc",
   "outstationAddress": "1",
@@ -170,7 +172,7 @@ The master application can request the status of any previously requested collec
 
 The Data Collection Status method will use a HTTP GET message and the parameters will be sent as part of the URL and the response will contain the information in JSON format in the response body.
 ```
-GET collection-status/requestReference
+GET collection-status?requestReference=x
 ```
 ### URL Request Parameters
 
@@ -233,7 +235,7 @@ value           | Number | The value of the register | YES
 ### Sample - successfully completed collection
 HTTP request from master application to MCS:
 ```
-GET https://www.coherent-research.co.uk/MCS/collection-status/0001
+GET https://www.coherent-research.co.uk/MCS/collection-status?requestReference=0001
 ```
 HTTP response from MCS:
 ```
