@@ -314,11 +314,11 @@ Content-Type: application/json; charset=utf-8
 ```
 
 ### Sample - successfully completed time adjustment (no survey data)
-From master application to MCS:
+HTTP request from master application to MCS:
 ```
 GET https://www.coherent-research.co.uk/MCS/collection-status/0001
 ```
-From MCS to master application:
+HTTP response from MCS:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
@@ -342,6 +342,36 @@ Content-Type: application/json; charset=utf-8
   "timeAdjustmentResult": "SUCCESS"
 }
 ```
+## Service Status method
+MCS provides a method to check the status of the service itself. 
+```
+GET service-status
+```
+### URL Request parameters
+This method takes no parameters.
+
+### JSON Response parameters
+Name            | Type   | Value | Mandatory 
+----------------|--------|-------|-----------
+version         | String | The version of the service in the format X.Y.Z | YES 
+status          | String | A string indicating the status of the service if it is running. Normally this will be OK | YES
+
+### Sample 
+HTTP request from master application to MCS:
+```
+GET https://www.coherent-research.co.uk/MCS/service-status
+```
+
+HTTP response from MCS:
+```
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+  "version": "1.0.0",
+  "status": "OK"
+}
+```
 # MCS Result API
 ## General
 MCS will send the results of any data collection request to the provided URL using the MCS Result API. 
@@ -352,7 +382,7 @@ The Data Collection Result method will use a HTTP POST message and the parameter
 ```
 POST collection-result
 ```
-### URL Request Parameters
+### JSON Request Parameters
 See MCS Collection Status request above.
 
 ### JSON Response parameters
@@ -443,3 +473,19 @@ HTTP response from master application:
 ```
 HTTP/1.1 200 OK
 ```
+## Service Status method
+The Service Statuc Method mirrows the Service Status method and allows for a remote end to check the status of the MCS Result service itself. 
+```
+GET service-status
+```
+### URL Request parameters
+This method takes no parameters.
+
+### JSON Response parameters
+Name            | Type   | Value | Mandatory 
+----------------|--------|-------|-----------
+version         | String | The version of the service in the format X.Y.Z | YES 
+status          | String | A string indicating the status of the service if it is running. Normally this will be OK | YES
+
+### Sample
+See the corresponding MCS Request API method.
