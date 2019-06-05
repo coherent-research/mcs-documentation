@@ -25,8 +25,7 @@ Response code | Meaning
 429 Too Many Requests | Can be sent by the server to throttle inputs. Exact usage to be decided. 
 500 Internal Server Error | Indicates a fault on the server. The body of the response will provide more details about the error.
 
-## Error handling
-To be decided.
+All response codes not equal to 200 will provide a JSON object containing a "details" property which provides more information about the error.
 
 # MCS Request API
 ## General
@@ -65,7 +64,6 @@ Notes:
 Name             | Type   | Value | Mandatory 
 -----------------|--------|-------|-----------
 requestReference | String | Unique ID contained in the request. | YES 
-details         | String | Details relating to any errors. This parameter is only included if the response code does not equal 200. | NO
 
 ### Sample - successful case
 HTTP request from master application to MCS:
@@ -123,7 +121,6 @@ HTTP/1.1 400 Bad Request
 Content-Type: application/json; charset=utf-8
 
 {
-  "requestReference": "0001".
   "details": "Remote address is not in a recognised format"
 }
 ```
