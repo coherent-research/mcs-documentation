@@ -43,6 +43,7 @@ POST collection-request
 Name             | Type   | Value | Mandatory 
 -----------------|--------|-------|-----------
 requestReference | String | A unique ID for the request. The master application must ensure this id is unique (GUID?) | YES 
+mpan            | String | Number to identify the meter. | YES 
 responseUrl     | String | The URL that MCS will send the results to. The URL must implement the MCS Result API | YES
 priority        | Int    | An integer value (>= 1) assigning a relative priority to the request. The lower the number the higher the priority. (0 is reserved for interactive requests and will not be accepted here). | YES
 delayUntil      | String | Can be used to indicate that the request shouldn't be processed until a time in the future. This can be used to indicate requests should be processed overnight. | NO
@@ -74,6 +75,7 @@ content-type: application/json
 {
   "requestReference": "0001",
   "responseUrl": "https://www.company.com/MCSresults",
+  "mpan": "12345",	
   "priority": 1,
   "meterType": "ELSTER_A1700",
   "remoteAddress": "07777000000",
@@ -103,6 +105,7 @@ content-type: application/json
 {
   "requestReference": "0001",
   "responseUrl": "https://www.company.com/MCSresults",
+  "mpan": "12345",	
   "priority": 1,
   "meterType": "ELSTER_A1700",
   "remoteAddress": "abc",
@@ -181,6 +184,7 @@ requestReference       | String | Unique ID contained in the request. | YES
 Name             | Type   | Value | Mandatory 
 -----------------|--------|-------|-----------
 requestReference | String | Note 1 | YES 
+mpan             | String | Note 1 | YES
 meterType       | String | Note 1 | YES 
 remoteAddress   | String | Note 1 | YES 
 comsSettings   | String | Note 1 | YES 
@@ -241,6 +245,7 @@ Content-Type: application/json; charset=utf-8
 
 {
   "requestReference": "0001",
+  "mpan": "12345",
   "meterType": "ELSTER_A1700",
   "remoteAddress": "07777000000",
   "outstationAddress": "1",
@@ -324,6 +329,7 @@ Content-Type: application/json; charset=utf-8
 
 {
   "requestReference": "0001",
+  "mpan": "12345",
   "meterType": "ELSTER_A1700",
   "remoteAddress": "07777000000",
   "outstationAddress": "1",
@@ -398,6 +404,7 @@ Content-Type: application/json; charset=utf-8
 
 {
   "requestReference": "0001",
+  "mpan": "12345",
   "meterType": "ELSTER_A1700",
   "remoteAddress": "07777000000",
   "outstationAddress": "1",
