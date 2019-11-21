@@ -200,6 +200,7 @@ connectionStartTime | String | The time that the communication channel was opene
 connectionEndTime | String | The time that the communication channel was closed. In the case of multiple retries this will be the  of the last attempt. Note 2 in the same format as above. | NO
 serialNumber   | String |  The serial number received from the meter, or "ERROR: details" if it was not possible to fetch the serial number from the meter or if the serial number from the request is included and does not match the serial number read from the meter. | NO 
 meterTime      | String | The meter date/time received from the meter with an offset in seconds from the time the test took place in the format YYYY-MM-DDTHH:mm:ss +/- Ns, e.g. 2014-10-31T23:33:32 -203s (indicates that the time was 203 seconds behind the real time when it was read). If no time was read this will contain "ERROR: details" where details describe the problem. | NO
+statusEvents   | Array of strings | An array of strings representing status events indicated by the meter. These will vary by meter type | NO
 timeAdjustmentResult | String | "NOT REQUIRED", "SUCCESS", "ERROR: details". The timeAdjustmentResult can be an ERROR if it was not possible to adjust the time or the variation was above the maximum threshold. | NO
 registerValues | Array | An array of Register Value objects. See below | NO
 surveyData | Array | An array of Register Survey Data objects. See below | NO
@@ -260,6 +261,9 @@ Content-Type: application/json; charset=utf-8
   "connectionEndTime": "2019-01-02T04:01:28",
   "serialNumber": "12345678",
   "meterTime": "2019-01-02T03T04:02:15 +10s",
+  "statusEvents" : [
+	"Lid/terminal cover tamper"
+  ],
   "registerValues": [
     {
       "name": "kWh Import",
